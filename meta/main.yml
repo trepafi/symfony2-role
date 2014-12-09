@@ -1,0 +1,11 @@
+galaxy_info:
+  author: trepafi
+  description: Ansible role for deploying Symfony2 applications
+  license: MIT
+  platforms:
+  - name: Ubuntu
+    versions:
+    - 14.04
+  categories:
+  - system
+  - development
