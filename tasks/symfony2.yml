@@ -1,0 +1,62 @@
+---
+- name: S2 | Create the shared directory.
+  file: state=directory path={{symfony2_project.remote_root}}/shared
+  tags: ['init-s2']
+
+- name: S2 | Create the shared/app/config directory.
+  file: state=directory path={{symfony2_project.remote_root}}/shared/app/config
+  tags: ['init-s2']
+
+- name: S2 | Create the shared/web/uploads directory.
+  file: state=directory path={{symfony2_project.remote_root}}/shared/web/uploads
+  tags: ['init-s2']
+
+- name: S2 | Create the shared/app/logs directory.
+  file: state=directory path={{symfony2_project.remote_root}}/shared/app/logs
+  tags: ['init-s2']
+
+- name: S2 | Create the release directory.
+  file: state=directory path={{symfony2_project.remote_root}}/releases/{{symfony2_project.release}}
+  tags: ['deploy']
+
+- name: S2 | Pull sources from the repository.
+  git: repo={{symfony2_project.repo}} dest={{symfony2_project.remote_root}}/releases/{{symfony2_project.release}} version={{symfony2_project.branch}} key_file={{github.key_file_dest}} accept_hostkey=yes
+  tags: ['deploy']
+
+- name: S2 | Check if shared/app/config/parameters.ini exists
+  stat: path={{symfony2_project.remote_root}}/shared/app/config/parameters.ini
+  register: parameters_ini
+  tags: ['deploy']
+
+- name: S2 | Create symlink for app/config/parameters.ini from shared directory
+  shell: ln -s {{symfony2_project.remote_root}}/shared/app/config/parameters.ini {{symfony2_project.remote_root}}/releases/{{symfony2_project.release}}/app/config/parameters.ini creates={{symfony2_project.remote_root}}/releases/{{symfony2_project.release}}/app/config/parameters.ini
+  when: parameters_ini.stat.exists
+  tags: ['deploy']
+
+- name: S2 | Create app/logs symlink
+  file: state=link src={{symfony2_project.remote_root}}/shared/app/logs dest={{symfony2_project.remote_root}}/releases/{{symfony2_project.release}}/app/logs
+  tags: ['deploy']
+
+- name: S2 | Create web/uploads symlink
+  file: state=link src={{symfony2_project.remote_root}}/shared/web/uploads dest={{symfony2_project.remote_root}}/releases/{{symfony2_project.release}}/web/uploads
+  tags: ['deploy']
+
+- name: S2 | Install composer
+  get_url: url=https://getcomposer.org/composer.phar dest={{symfony2_project.remote_root}}/composer.phar mode=0755 validate_certs=no
+  tags: ['deploy']
+
+- name: S2 | Run composer install
+  shell: cd {{symfony2_project.remote_root}}/releases/{{symfony2_project.release}} && {{symfony2_project.php_path}} {{symfony2_project.remote_root}}/composer.phar install {{symfony2_project.composer_opts}}
+  tags: ['deploy']
+
+- name: S2 | Dump assets
+  shell: "cd {{symfony2_project.remote_root}}/releases/{{symfony2_project.release}} && {{symfony2_project.php_path}} app/console assetic:dump --env={{symfony2_project.env}} {{symfony2_project.console_opts}}"
+  tags: ['deploy']
+
+- name: S2 | Run migrations
+  shell: "cd {{symfony2_project.remote_root}}/releases/{{symfony2_project.release}} && if $(grep doctrine-migrations-bundle composer.json); then {{symfony2_project.php_path}} app/console doctrine:migrations:migrate -n; fi"
+  tags: ['deploy']
+
+- name: S2 | Create symlink
+  file: state=link src="{{symfony2_project.remote_root}}/releases/{{symfony2_project.release}}" dest="{{symfony2_project.remote_root}}/current"
+  tags: ['deploy']

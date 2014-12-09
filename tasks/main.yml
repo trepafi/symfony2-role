@@ -1,0 +1,11 @@
+---
+- include: github.yml
+  tags: ['install']
+
+- include: symfony2.yml
+
+- include: mysql.yml
+  tags: ['db']
+
+- include: specific.yml
+  tags: ['deploy']

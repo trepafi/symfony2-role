@@ -1,0 +1,4 @@
+---
+- name: Specific | Add permission to upgrade
+  file: state=directory mode=0777 path={{ item }}
+  with_items: full_access_folders

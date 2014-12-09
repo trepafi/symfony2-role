@@ -1,0 +1,25 @@
+---
+- name: MySQL | Find out the master log file name and position
+  command: /usr/bin/mysql -e "SHOW DATABASES;"
+  register: databases
+
+- name: MySQL | Create database
+  mysql_db: name={{mysql_db.name}} state=present
+
+# Copy from local to remote
+- name: MySQL | Copy current version of database
+  copy: src={{mysql_db.backup_root}}/{{mysql_db.dump_stable_filename}} dest=/tmp
+  when: databases.stdout.find('{{mysql_db.name}}') == -1
+
+- name: MySQL | Restoring database
+  mysql_db: name={{mysql_db.name}} state=import target=/tmp/{{mysql_db.dump_stable_filename}}
+  when: databases.stdout.find('{{mysql_db.name}}') == -1
+
+# Other timnes
+- name: MySQL | Dumping database
+  mysql_db: name={{mysql_db.name}} state=dump target=/tmp/{{mysql_db.dump_filename}}
+  when: databases.stdout.find('{{mysql_db.name}}') != -1
+
+- name: MySQL | Store dump file in local 
+  fetch: src=/tmp/{{mysql_db.dump_filename}} dest={{mysql_db.backup_root}}/{{mysql_db.dump_filename}} flat=yes
+  when: databases.stdout.find('{{mysql_db.name}}') != -1

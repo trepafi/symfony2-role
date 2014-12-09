@@ -1,0 +1,26 @@
+---
+# Vars for Symfny2 Role
+symfony2_project:
+  name: padeltotal
+  branch: master
+  release: "{{ansible_date_time.year}}{{ansible_date_time.month}}{{ansible_date_time.day}}{{ansible_date_time.hour}}{{ansible_date_time.minute}}{{ansible_date_time.second}}"
+  php_path: php
+  env: prod
+  console_opts: ''
+  composer_opts: '--no-dev --optimize-autoloader'
+  repo: 'git@github.com:trepafi/npadeltotal.git'
+  local_root: '/Users/lubert/Dropbox/Code/NewPadelTotal'
+  remote_root: "/var/shared/nginx/html/"
+
+mysql_db:
+  name: role-example
+  dump_filename: "{{symfony2_project.name}}.{{ansible_date_time.year}}{{ansible_date_time.month}}{{ansible_date_time.day}}{{ansible_date_time.hour}}{{ansible_date_time.minute}}{{ansible_date_time.second}}.sql.gz"
+  dump_stable_filename: "{{symfony2_project.name}}.stable.sql.gz"
+  backup_root: "{{symfony2_project.local_root}}/backups"
+
+full_access_folders:
+  - "{{symfony2_project.remote_root}}/releases/{{symfony2_project.release}}/app/logs/*"
+  - "{{symfony2_project.remote_root}}/releases/{{symfony2_project.release}}/shared/app/logs/*"
+
+ssh_facts:
+  known_hosts: /root/.ssh/known_hosts

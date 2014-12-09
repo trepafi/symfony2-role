@@ -1,0 +1,10 @@
+---
+github:
+  username: trepafi
+  host: github.com
+  key_file: /Users/lubert/Dropbox/Keys/github-general.pub
+  key_file_dest: /root/.ssh/github
+
+mysql:
+  username: 'root'
+  password: ''

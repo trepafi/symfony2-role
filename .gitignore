@@ -1,0 +1,4 @@
+.vagrant
+.DS_Store
+vagrant.yml
+Vagrantfile
